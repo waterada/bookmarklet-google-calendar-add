@@ -1,23 +1,20 @@
 function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
     //必須空白はスペース２つ, < > は省略可の意味
-    const D4 = '(\\d{2,4})';
-    const D2 = '(\\d{1,2})';
-    const D2_ = '(?:\\d{1,2})';
-    const WEEK_ = '<[（()][月火水木金土日][)）]>';
+    const WEEK_ = '<[（\\(][月火水木金土日][\\)）]>';
     const TO_ = '(?:から|～|-|－)';
-    const TIME_JA = `<${D2}時 <(\\d{1,2}|半)分? <${D2_}秒>>>`;
-    const TIME_EN = `<${D2}[:：]${D2}<[:：]${D2_}>>`;
+    const TIME_JA = `(D2)時 <(D2|半)分? <D2秒>>`;
+    const TIME_EN = `(D2)[:：](D2)<[:：]D2>`;
     const REG_DATES = [
-        `<${D4}年> ${D2}月 ${D2}日 ${WEEK_} `,
-        `<${D4}年> ${D2}月 ${D2}日 ${WEEK_} `,
-        `<${D4}/>${D2}/${D2}(?: ${WEEK_} |  )`,
-        `<${D4}->${D2}-${D2}(?: ${WEEK_} |  )`,
-        `<${D4}\.>${D2}\.${D2}(?: ${WEEK_} |  )`,
+        `<(D4)年> (D2)月 (D2)日 ${WEEK_} `,
+        `<(D4)/>(D2)/(D2)(?: ${WEEK_} |  )`,
+        `(D4)-(D2)-(D2)(?: ${WEEK_} |  )`,
+        `<(D4)\\.>(D2)\\.(D2)(?: ${WEEK_} |  )`,
     ];
     const REG_TIMES = [
-        `<${D2}() ${TO_} ${D2}() 時>`,
+        `(D2)() ${TO_} (D2)() 時`,
         `${TIME_JA} <${TO_} ${TIME_JA}>`,
         `${TIME_EN} <${TO_} ${TIME_EN}>`,
+        `()()()()`,
     ];
     let reg_dts = [];
     REG_DATES.forEach(d => {
@@ -41,7 +38,9 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
         i = i || '00';
         if (i === '半') { i = '30'; }
         let dt = new Date(`${y}-${m}-${d} ${h}:${i}`);
-        if (isNaN(dt)) { return; }
+        if (isNaN(dt)) { //時間とっても成立か
+            return addDateYmd(y, m, d);
+        }
         return {
             h: true,
             str: dt.toISOString().replace(/(:|-|\.\d+)/g, '')
@@ -50,8 +49,7 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
     let date1 = null, date2 = null;
     const addDate = (...args) => {
         if (date2) { return ''; }
-        let [, y, m, d, h, i, h2, i2] = args;
-        if (date1 && date1.h != !!h) { return ''; } //前と書式が違うなら
+        let [a, y, m, d, h, i, h2, i2] = args;
         y = y || NOW.getFullYear();
         let obj;
         if (h) {
@@ -59,7 +57,8 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
         } else {
             obj = addDateYmd(y, m, d);
         }
-        if (!obj) { return ''; }
+        if (!obj) { return a; }
+        if (date1 && date1.h != obj.h) { return a; } //前と書式が違うなら
         if (date1) {
             date2 = obj;
         } else {
@@ -67,7 +66,7 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
             date1 = obj;
         }
         if (h2) {
-            addDate('', y, m, d, h2, i2);
+            addDate(a, y, m, d, h2, i2);
         }
         return '';
     };
@@ -77,15 +76,17 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
         regs.forEach(reg => {
             if (_execRegsEnd) { return; }
             reg = reg.replace(/  /g, '[\\s　]+').replace(/ /g, '[\\s　]*');
-        reg = reg.replace(/\//g, '\\/').replace(/</g, '(?:').replace(/>/g, ')?');
-        if (debug) { debug(reg); }
-        reg = new RegExp(reg, 'g');
-        let selected2 = selected.replace(reg, cb4replace).trim();
-        if (selected !== selected2) {
-            _execRegsEnd = true;
-            selected = selected2;
-        }
-    });
+            reg = reg.replace(/\//g, '\\/').replace(/</g, '(?:').replace(/>/g, ')?');
+            reg = reg.replace(/\bD2\b/g, '\\d{1,2}').replace(/\bD4\b/g, '\\d{4}');
+            reg = `\\s*${reg}\\s*`;
+            if (debug) { debug(reg); }
+            reg = new RegExp(reg, 'g');
+            let selected2 = selected.replace(reg, cb4replace).trim();
+            if (selected !== selected2) {
+                _execRegsEnd = true;
+                selected = selected2;
+            }
+        });
         return selected;
     };
     if (!selected) { selected = prompt('Text:'); }
@@ -101,5 +102,5 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
         url += '&dates=' + date1.str + '/' + date2.str;
     }
     open(url);
-    return [selected, date1.str + '/' + date2.str];
+    return [selected, (date1 ? date1.str + '/' + date2.str : '')];
 }

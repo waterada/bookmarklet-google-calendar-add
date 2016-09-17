@@ -1,51 +1,58 @@
-function h(text) {
-    text = text.replace(/&/g, '&amp;');
-    text = text.replace(/</g, '&lt;');
-    text = text.replace(/>/g, '&gt;');
-    text = text.replace(/"/g, '&quot;');
-    return text;
-}
-
-function outputHtml(html, text) {
-    console.log(text || html);
-    let out = document.getElementById('test');
-    out.innerHTML += html + "\n";
-}
-
-function outputText(text) {
-    outputHtml(h(text));
-}
-
-function debug(text) {
-    console.log(text);
-}
-
-function error(text) {
-    console.error(text);
-    let out = document.getElementById('test');
-    out.innerHTML += '<span style="color: red;">' + h(text) + "</span>\n";
-}
-
-function assert(actual, expected, title) {
-    if (actual === expected) {
-        outputText(`(${title}) OK`);
-    } else {
-        error(`(${title}) actual   : ${actual}`);
-        error(`(${title}) expected : ${expected}`);
-    }
-}
-
-function open(url) {
-    outputHtml(`<a href="${url}" target="_blank">link</a>`, url);
-}
-
 function exec_test(TESTS) {
+    const h = (text) => {
+        text = text.replace(/&/g, '&amp;');
+        text = text.replace(/</g, '&lt;');
+        text = text.replace(/>/g, '&gt;');
+        text = text.replace(/"/g, '&quot;');
+        return text;
+    };
+    const assert = ($detail, actual, expected, title) => {
+        if (actual === expected) {
+            console.log(`(${title}) OK`);
+            $(`<div><pre>(${h(title)}) OK</pre></div>`).appendTo($detail);
+            return true;
+        } else {
+            const error = (label, value) => {
+                console.error(`(${title}) ${label} : ${value}`);
+                $(`<div><pre>(${h(title)}) ${label} : ${h(value)}</pre></div>`).css({color: 'red'}).appendTo($detail);
+            };
+            error('actual  ', actual);
+            error('expected', expected);
+            return false;
+        }
+    };
     TESTS.forEach(test => {
         let [ts_text, ex_selected, ex_dates] = test;
-        outputText(ts_text);
-        let [selected, dates] = bookmarklet_google_calendar_add(ts_text, new Date('2016-01-01'), open, debug);
-        assert(selected, ex_selected, 'selected');
-        assert(dates, ex_dates, 'dates');
-        outputText('--------------------------------');
+        const $detail = $('<div></div>');
+        const $result = $('<span></span>');
+        const $title = $('<div></div>').click((e) => {
+            if ($(e.target).is('a')) {
+                e.stopPropagation();
+                return;
+            }
+            $detail.toggle();
+        });
+        const openUrl = (url) => {
+            $(`<a href="${url}" target="_blank">link</a>`, url).appendTo($title);
+        };
+        console.log(ts_text);
+        $('#test').append(
+            $title.append(
+                $('<code></code>').text(ts_text).css({marginRight: '10px'}),
+                $result.css({marginRight: '20px'})
+            ),
+            $detail.hide().css({padding: '10px'})
+        );
+        let [selected, dates] = bookmarklet_google_calendar_add(ts_text, new Date('2016-01-01'), openUrl, console.log);
+        let success = true;
+        success = assert($detail, selected, ex_selected, 'selected') && success;
+        success = assert($detail, dates, ex_dates, 'dates') && success;
+        if (success) {
+            $result.text('OK');
+        } else {
+            $result.text('NG').css({color: 'red', fontWeight: 'bold'});
+            $detail.show();
+        }
+        console.log('--------------------------------');
     });
 }
