@@ -1,25 +1,55 @@
 function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
+    //正規表現をメンテしやすく書けるようにするもの
+    //  空白1個は省略可の空白
+    //  空白2個は省略不可の空白
+    //  < > はその範囲が将来可
+    class RegExpSweet {
+        constructor(cbDebug) {
+            this.replaces = [];
+            this.cbDebug = cbDebug;
+            this.addSyntax('（', '[（\\(]').addSyntax('）', '[\\)）]');
+            this.addSyntax('  ', '[\\s　]+').addSyntax(' ', '[\\s　]*');
+            this.addSyntax('<', '(?:').addSyntax('>', ')?');
+        }
+        addSyntax(search, replace) {
+            if (!search.match(/\W/)) { search = `\\b${search}\\b`; }
+            search = new RegExp(search, 'g');
+            this.replaces.unshift({search, replace});
+            return this;
+        }
+        toRegExp(regExpStr, flags) {
+            this.replaces.forEach(a => {
+                regExpStr = regExpStr.replace(a.search, a.replace);
+            });
+            if (this.cbDebug) { this.cbDebug(regExpStr); }
+            return new RegExp(regExpStr, flags || 'g');
+        }
+    }
     //必須空白はスペース２つ, < > は省略可の意味
-    const WEEK_ = '<[（\\(][月火水木金土日][\\)）]>';
-    const TO_ = '(?:から|～|-|－)';
-    const TIME_JA = `(D2)時 <(D2|半)分? <D2秒>>`;
-    const TIME_EN = `(D2)[:：](D2)<[:：]D2>`;
+    const dateRegExp = new RegExpSweet(debug);
+    dateRegExp.addSyntax('WEEK', '<（[月火水木金土日]）>');
+    dateRegExp.addSyntax('TO', '(?:から|～|-|－)');
+    dateRegExp.addSyntax('D2', '\\d{1,2}');
+    dateRegExp.addSyntax('D4', '\\d{4}');
+    dateRegExp.addSyntax('TIME_JA', '(D2)時 <(D2|半)分? <D2秒>>');
+    dateRegExp.addSyntax('TIME_EN', '(D2)[:：](D2)<[:：]D2>');
     const REG_DATES = [
-        `<(D4)年> (D2)月 (D2)日 ${WEEK_} `,
-        `<(D4)/>(D2)/(D2)(?: ${WEEK_} |  )`,
-        `(D4)-(D2)-(D2)(?: ${WEEK_} |  )`,
-        `<(D4)\\.>(D2)\\.(D2)(?: ${WEEK_} |  )`,
+        `<(D4)年> (D2)月 (D2)日 WEEK `,
+        `<(D4)/>(D2)/(D2)(?: WEEK |  )`,
+        `(D4)-(D2)-(D2)(?: WEEK |  )`,
+        `<(D4)\\.>(D2)\\.(D2)(?: WEEK |  )`,
     ];
     const REG_TIMES = [
-        `(D2)() ${TO_} (D2)() 時`,
-        `${TIME_JA} <${TO_} ${TIME_JA}>`,
-        `${TIME_EN} <${TO_} ${TIME_EN}>`,
+        `(D2)() TO (D2)() 時`,
+        `TIME_JA <TO TIME_JA>`,
+        `TIME_EN <TO TIME_EN>`,
         `()()()()`,
     ];
     let reg_dts = [];
     REG_DATES.forEach(d => {
         REG_TIMES.forEach(t => {
-            reg_dts.push(d + t);
+            let reg = dateRegExp.toRegExp(`\\s*${d + t}\\s*`);
+            reg_dts.push(reg);
         });
     });
     const zf = n => ('0' + n).slice(-2);
@@ -75,12 +105,6 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
         _execRegsEnd = false;
         regs.forEach(reg => {
             if (_execRegsEnd) { return; }
-            reg = reg.replace(/  /g, '[\\s　]+').replace(/ /g, '[\\s　]*');
-            reg = reg.replace(/\//g, '\\/').replace(/</g, '(?:').replace(/>/g, ')?');
-            reg = reg.replace(/\bD2\b/g, '\\d{1,2}').replace(/\bD4\b/g, '\\d{4}');
-            reg = `\\s*${reg}\\s*`;
-            if (debug) { debug(reg); }
-            reg = new RegExp(reg, 'g');
             let selected2 = selected.replace(reg, cb4replace).trim();
             if (selected !== selected2) {
                 _execRegsEnd = true;
