@@ -31,7 +31,7 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
     dateRegExp.addSyntax('TO', '(?:から|～|-|－)');
     dateRegExp.addSyntax('D2', '\\d{1,2}');
     dateRegExp.addSyntax('D4', '\\d{4}');
-    dateRegExp.addSyntax('TIME_JA', '(D2)時 <(D2|半)分? <D2秒>>');
+    dateRegExp.addSyntax('TIME_JA', '(D2)時 <(D2分|半) <D2秒>>');
     dateRegExp.addSyntax('TIME_EN', '(D2)[:：](D2)<[:：]D2>');
     const REG_DATES = [
         `<(D4)年> (D2)月 (D2)日 WEEK `,
@@ -67,6 +67,7 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
     const addDateYmdhi = (y, m, d, h, i) => {
         i = i || '00';
         if (i === '半') { i = '30'; }
+        i = i.replace(/分$/, '');
         let dt = new Date(`${y}-${m}-${d} ${h}:${i}`);
         if (isNaN(dt)) { //時間とっても成立か
             return addDateYmd(y, m, d);
