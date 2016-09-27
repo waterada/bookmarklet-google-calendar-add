@@ -104,16 +104,13 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
         }
         return '';
     };
-    let _execReListEnd;
     const execReList = (selected, reList, cb4replace) => {
-        _execReListEnd = false;
-        reList.forEach(re => {
-            if (_execReListEnd) { return; }
+        for (let re of reList) {
             let selected2 = selected.replace(re, cb4replace).trim();
             if (selected !== selected2) {
-                _execReListEnd = true;
+                break;
             }
-        });
+        }
     };
     if (!selected) { selected = prompt('Text:'); }
     if (!selected) { return; }
