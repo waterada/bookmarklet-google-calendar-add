@@ -25,8 +25,8 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open) {
     }
     const reSweetDate = new RegExpSweet();
     reSweetDate.addSyntax({'（': '[（\\(]', '）': '[\\)）]'});
-    reSweetDate.addSyntax({'  ': '[\\s　]+'});
-    reSweetDate.addSyntax({' ': '[\\s　]*'});
+    reSweetDate.addSyntax({'  ': '\\s+'});
+    reSweetDate.addSyntax({' ': '\\s*'});
     reSweetDate.addSyntax({'<': '(?:', '>': ')?'});
     reSweetDate.addSyntax({
         WEEK: '<（[月火水木金土日]）>',
@@ -34,7 +34,7 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open) {
         D2: '\\d{1,2}',
         D4: '\\d{4}',
         TIME_JA: '(D2)時 <(D2分|半) <D2秒>>',
-        TIME_EN: '(D2)[:：](D2)<[:：]D2>',
+        TIME_EN: '(D2):(D2)<:D2>',
     });
     const RE_DATES = [
         `<(D4)年> (D2)月 (D2)日 WEEK `,
@@ -115,7 +115,8 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open) {
     if (!selected) { selected = prompt('Text:'); }
     if (!selected) { return; }
     let details = selected.trim();
-    selected = selected.replace(/\s+/g,' ').trim();
+    selected = selected.replace(/[０-９／．：－]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)); //半角化
+    selected = selected.replace(/　/g,' ').replace(/\s+/g,' ').trim();
     execReList(selected, dtReList, pickupDate);
     let url = 'http://www.google.com/calendar/event?action=TEMPLATE&trp=false' +
         '&details=' + encodeURIComponent(details);
