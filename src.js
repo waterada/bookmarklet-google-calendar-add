@@ -59,10 +59,10 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         }
     }
     const zf = n => ('0' + n).slice(-2);
-    const analyzeYmd = (y, m, d) => {
+    const analyzeYmd = (is2nd, y, m, d) => {
         let dt = new Date(`${y}-${m}-${d}`);
         if (isNaN(dt)) { return; }
-        if (date1) { //日時の２つ目は翌日
+        if (is2nd) { //日時の２つ目は翌日
             dt = new Date(dt.getTime() + 24 * 3600 * 1000);
         }
         return {
@@ -70,13 +70,13 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
             str: `${y}${zf(dt.getMonth()+1)}${zf(dt.getDate())}`
         };
     };
-    const analyzeYmdhi = (y, m, d, h, i) => {
+    const analyzeYmdhi = (is2nd, y, m, d, h, i) => {
         i = i || '00';
         if (i === '半') { i = '30'; }
         i = i.replace(/分$/, '');
         let dt = new Date(`${y}-${m}-${d} ${h}:${i}`);
         if (isNaN(dt)) { //時間とっても成立か
-            return analyzeYmd(y, m, d);
+            return analyzeYmd(is2nd, y, m, d);
         }
         return {
             h: true,
@@ -94,9 +94,9 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         }
         let obj;
         if (h) {
-            obj = analyzeYmdhi(y, m, d, h, i);
+            obj = analyzeYmdhi(!!date1, y, m, d, h, i);
         } else {
-            obj = analyzeYmd(y, m, d);
+            obj = analyzeYmd(!!date1, y, m, d);
         }
         if (!obj) { return a; }
         if (date1 && date1.h != obj.h) { return a; } //前と書式が違うなら
