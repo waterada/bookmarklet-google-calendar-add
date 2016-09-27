@@ -1,4 +1,5 @@
-function bookmarkletToAddToGoogleCalendar(selected, NOW, open) {
+function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
+    NOW = NOW || new Date();
     //正規表現をメンテしやすく書けるようにするもの
     //  空白1個は省略可の空白
     //  空白2個は省略不可の空白
