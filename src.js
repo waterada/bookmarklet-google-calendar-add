@@ -25,11 +25,11 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open) {
     }
     const reSweetDate = new RegExpSweet();
     reSweetDate.addSyntax({'（': '[（\\(]', '）': '[\\)）]'});
-    reSweetDate.addSyntax({'  ': '\\s+'});
     reSweetDate.addSyntax({' ': '\\s*'});
+    reSweetDate.addSyntax({'  ': '\\s+'});
     reSweetDate.addSyntax({'<': '(?:', '>': ')?'});
     reSweetDate.addSyntax({
-        WEEK: '<（[月火水木金土日]）>',
+        WEEK: '（[月火水木金土日]）',
         TO: '(?:から|～|-|－)',
         D2: '\\d{1,2}',
         D4: '\\d{4}',
@@ -37,10 +37,10 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open) {
         TIME_EN: '(D2):(D2)<:D2>',
     });
     const RE_DATES = [
-        `<(D4)年> (D2)月 (D2)日 WEEK `,
-        `<(D4)/>(D2)/(D2)(?: WEEK |  )`,
-        `(D4)-(D2)-(D2)(?: WEEK |  )`,
-        `<(D4)\\.>(D2)\\.(D2)(?: WEEK |  )`,
+        `<(D4)年> (D2)月 (D2)日 <WEEK> `,
+        `<(D4)/>(D2)/(D2)(?: WEEK |\\b )`,
+        `(D4)-(D2)-(D2)(?: WEEK |\\b )`,
+        `<(D4)\\.>(D2)\\.(D2)(?: WEEK |\\b )`,
     ];
     const RE_TIMES = [
         `(D2)() TO (D2)() 時`,
