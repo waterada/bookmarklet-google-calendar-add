@@ -33,7 +33,9 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         WEEK: '（[月火水木金土日]）',
         TO: '(?:から|～|-|－)',
         D2: '\\d{1,2}',
-        D4: '\\d{4}',
+        HEISEI: '(?:平成?|[Hh]\\.?)',
+        SHOWA: '(?:昭和?|[Ss]\\.?)',
+        D4: `(?:\\d{4}|(?:HEISEI|SHOWA) \\d{1,2})`,
         TIME_JA: '(D2)時 <(D2分|半) <D2秒>>',
         TIME_EN: '(D2):(D2)<:D2>',
     });
@@ -86,6 +88,10 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         if (date2) { return ''; }
         let [a, y, m, d, h, i, h2, i2] = args;
         y = y || (date1 && date1.args[1]) || NOW.getFullYear();
+        if (y.replace) {
+            y = y.replace(reSweetDate.toRegExp('^HEISEI (\\d+)'), (a, y) => y * 1 + 1988);
+            y = y.replace(reSweetDate.toRegExp('^SHOWA (\\d+)'), (a, y) => y * 1 + 1925);
+        }
         let obj;
         if (h) {
             obj = analyzeYmdhi(y, m, d, h, i);
