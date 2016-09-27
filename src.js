@@ -108,23 +108,20 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
             let selected2 = selected.replace(re, cb4replace).trim();
             if (selected !== selected2) {
                 _execReListEnd = true;
-                selected = selected2;
             }
         });
-        return selected;
     };
     if (!selected) { selected = prompt('Text:'); }
     if (!selected) { return; }
     let details = selected.trim();
     selected = selected.replace(/\s+/g,' ').trim();
-    selected = execReList(selected, dtReList, pickupDate);
+    execReList(selected, dtReList, pickupDate);
     let url = 'http://www.google.com/calendar/event?action=TEMPLATE&trp=false' +
-        '&text=' + encodeURIComponent(selected) +
         '&details=' + encodeURIComponent(details);
     if (date1) {
         if (!date2) { pickupDate(...date1.args); }
         url += '&dates=' + date1.str + '/' + date2.str;
     }
     open(url);
-    return [selected, (date1 ? date1.str + '/' + date2.str : '')];
+    return [(date1 ? date1.str + '/' + date2.str : '')];
 }

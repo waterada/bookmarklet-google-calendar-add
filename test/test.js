@@ -22,7 +22,7 @@ function execTests(TESTS) {
         }
     };
     TESTS.forEach(test => {
-        let [ts_text, ex_selected, ex_dates] = test;
+        let [ts_text, ex_dates] = test;
         const $detail = $('<div></div>');
         const $result = $('<span></span>');
         const $title = $('<div></div>').click((e) => {
@@ -43,9 +43,8 @@ function execTests(TESTS) {
             ),
             $detail.hide().css({padding: '10px'})
         );
-        let [selected, dates] = bookmarkletToAddToGoogleCalendar(ts_text, new Date('2016-01-01'), openUrl, console.log);
+        let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, new Date('2016-01-01'), openUrl, console.log);
         let success = true;
-        success = assert($detail, selected, ex_selected, 'selected') && success;
         success = assert($detail, dates, ex_dates, 'dates') && success;
         if (success) {
             $result.text('OK');
