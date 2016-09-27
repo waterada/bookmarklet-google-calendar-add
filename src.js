@@ -10,9 +10,9 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open) {
         addSyntax(replacements) {
             Object.keys(replacements).forEach(search => {
                 let replace = replacements[search];
-            if (!search.match(/\W/)) { search = `\\b${search}\\b`; }
-            search = new RegExp(search, 'g');
-            this.replaces.unshift({search, replace});
+                if (!search.match(/\W/)) { search = `\\b${search}\\b`; }
+                search = new RegExp(search, 'g');
+                this.replaces.unshift({search, replace});
             });
             return this;
         }
