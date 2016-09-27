@@ -7,14 +7,18 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
         constructor(cbDebug) {
             this.replaces = [];
             this.cbDebug = cbDebug;
-            this.addSyntax('（', '[（\\(]').addSyntax('）', '[\\)）]');
-            this.addSyntax('  ', '[\\s　]+').addSyntax(' ', '[\\s　]*');
-            this.addSyntax('<', '(?:').addSyntax('>', ')?');
+            this.addSyntax({'（': '[（\\(]', '）': '[\\)）]'});
+            this.addSyntax({'  ': '[\\s　]+'});
+            this.addSyntax({' ': '[\\s　]*'});
+            this.addSyntax({'<': '(?:', '>': ')?'});
         }
-        addSyntax(search, replace) {
+        addSyntax(replacements) {
+            Object.keys(replacements).forEach(search => {
+                let replace = replacements[search];
             if (!search.match(/\W/)) { search = `\\b${search}\\b`; }
             search = new RegExp(search, 'g');
             this.replaces.unshift({search, replace});
+            });
             return this;
         }
         toRegExp(regExpStr, flags) {
@@ -26,12 +30,14 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
         }
     }
     const reSweetDate = new RegExpSweet(debug);
-    reSweetDate.addSyntax('WEEK', '<（[月火水木金土日]）>');
-    reSweetDate.addSyntax('TO', '(?:から|～|-|－)');
-    reSweetDate.addSyntax('D2', '\\d{1,2}');
-    reSweetDate.addSyntax('D4', '\\d{4}');
-    reSweetDate.addSyntax('TIME_JA', '(D2)時 <(D2分|半) <D2秒>>');
-    reSweetDate.addSyntax('TIME_EN', '(D2)[:：](D2)<[:：]D2>');
+    reSweetDate.addSyntax({
+        WEEK: '<（[月火水木金土日]）>',
+        TO: '(?:から|～|-|－)',
+        D2: '\\d{1,2}',
+        D4: '\\d{4}',
+        TIME_JA: '(D2)時 <(D2分|半) <D2秒>>',
+        TIME_EN: '(D2)[:：](D2)<[:：]D2>',
+    });
     const RE_DATES = [
         `<(D4)年> (D2)月 (D2)日 WEEK `,
         `<(D4)/>(D2)/(D2)(?: WEEK |  )`,
