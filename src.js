@@ -6,10 +6,6 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
     class RegExpSweet {
         constructor() {
             this.replaces = [];
-            this.addSyntax({'（': '[（\\(]', '）': '[\\)）]'});
-            this.addSyntax({'  ': '[\\s　]+'});
-            this.addSyntax({' ': '[\\s　]*'});
-            this.addSyntax({'<': '(?:', '>': ')?'});
         }
         addSyntax(replacements) {
             Object.keys(replacements).forEach(search => {
@@ -28,6 +24,10 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
         }
     }
     const reSweetDate = new RegExpSweet();
+    reSweetDate.addSyntax({'（': '[（\\(]', '）': '[\\)）]'});
+    reSweetDate.addSyntax({'  ': '[\\s　]+'});
+    reSweetDate.addSyntax({' ': '[\\s　]*'});
+    reSweetDate.addSyntax({'<': '(?:', '>': ')?'});
     reSweetDate.addSyntax({
         WEEK: '<（[月火水木金土日]）>',
         TO: '(?:から|～|-|－)',
