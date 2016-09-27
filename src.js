@@ -40,16 +40,16 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         TIME_EN: '(D2):(D2)<:D2>',
     });
     const RE_DATES = [
-        `<(YYYY)年> (D2)月 (D2)日 <WEEK> `,
-        `<(YYYY)/>(D2)/(D2)(?: WEEK |\\b )`,
-        `(YYYY)-(D2)-(D2)(?: WEEK |\\b )`,
-        `<(YYYY)\\.>(D2)\\.(D2)(?: WEEK |\\b )`,
+        '<(YYYY)年> (D2)月 (D2)日 <WEEK> ',
+        '<(YYYY)/>(D2)/(D2)(?: WEEK |\\b )',
+        '(YYYY)-(D2)-(D2)(?: WEEK |\\b )',
+        '<(YYYY)\\.>(D2)\\.(D2)(?: WEEK |\\b )',
     ];
     const RE_TIMES = [
-        `(D2)() TO (D2)() 時`,
-        `TIME_JA <TO TIME_JA>`,
-        `TIME_EN <TO TIME_EN>`,
-        `()()()()`,
+        '(D2)() TO (D2)() 時',
+        'TIME_JA <TO TIME_JA>',
+        'TIME_EN <TO TIME_EN>',
+        '()()()()',
     ];
     let dtReList = [];
     RE_DATES.forEach(d => {
