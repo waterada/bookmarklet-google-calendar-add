@@ -1,4 +1,4 @@
-function exec_test(TESTS) {
+function execTests(TESTS) {
     const h = (text) => {
         text = text.replace(/&/g, '&amp;');
         text = text.replace(/</g, '&lt;');
@@ -43,7 +43,7 @@ function exec_test(TESTS) {
             ),
             $detail.hide().css({padding: '10px'})
         );
-        let [selected, dates] = bookmarklet_google_calendar_add(ts_text, new Date('2016-01-01'), openUrl, console.log);
+        let [selected, dates] = bookmarkletToAddToGoogleCalendar(ts_text, new Date('2016-01-01'), openUrl, console.log);
         let success = true;
         success = assert($detail, selected, ex_selected, 'selected') && success;
         success = assert($detail, dates, ex_dates, 'dates') && success;

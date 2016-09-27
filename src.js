@@ -1,4 +1,4 @@
-function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
+function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
     //正規表現をメンテしやすく書けるようにするもの
     //  空白1個は省略可の空白
     //  空白2個は省略不可の空白
@@ -25,35 +25,34 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
             return new RegExp(regExpStr, flags || 'g');
         }
     }
-    //必須空白はスペース２つ, < > は省略可の意味
-    const dateRegExp = new RegExpSweet(debug);
-    dateRegExp.addSyntax('WEEK', '<（[月火水木金土日]）>');
-    dateRegExp.addSyntax('TO', '(?:から|～|-|－)');
-    dateRegExp.addSyntax('D2', '\\d{1,2}');
-    dateRegExp.addSyntax('D4', '\\d{4}');
-    dateRegExp.addSyntax('TIME_JA', '(D2)時 <(D2分|半) <D2秒>>');
-    dateRegExp.addSyntax('TIME_EN', '(D2)[:：](D2)<[:：]D2>');
-    const REG_DATES = [
+    const reSweetDate = new RegExpSweet(debug);
+    reSweetDate.addSyntax('WEEK', '<（[月火水木金土日]）>');
+    reSweetDate.addSyntax('TO', '(?:から|～|-|－)');
+    reSweetDate.addSyntax('D2', '\\d{1,2}');
+    reSweetDate.addSyntax('D4', '\\d{4}');
+    reSweetDate.addSyntax('TIME_JA', '(D2)時 <(D2分|半) <D2秒>>');
+    reSweetDate.addSyntax('TIME_EN', '(D2)[:：](D2)<[:：]D2>');
+    const RE_DATES = [
         `<(D4)年> (D2)月 (D2)日 WEEK `,
         `<(D4)/>(D2)/(D2)(?: WEEK |  )`,
         `(D4)-(D2)-(D2)(?: WEEK |  )`,
         `<(D4)\\.>(D2)\\.(D2)(?: WEEK |  )`,
     ];
-    const REG_TIMES = [
+    const RE_TIMES = [
         `(D2)() TO (D2)() 時`,
         `TIME_JA <TO TIME_JA>`,
         `TIME_EN <TO TIME_EN>`,
         `()()()()`,
     ];
-    let reg_dts = [];
-    REG_DATES.forEach(d => {
-        REG_TIMES.forEach(t => {
-            let reg = dateRegExp.toRegExp(`\\s*${d + t}\\s*`);
-            reg_dts.push(reg);
+    let dtReList = [];
+    RE_DATES.forEach(d => {
+        RE_TIMES.forEach(t => {
+            let re = reSweetDate.toRegExp(`\\s*${d + t}\\s*`);
+            dtReList.push(re);
         });
     });
     const zf = n => ('0' + n).slice(-2);
-    const addDateYmd = (y, m, d) => {
+    const analyzeYmd = (y, m, d) => {
         let dt = new Date(`${y}-${m}-${d}`);
         if (isNaN(dt)) { return; }
         if (date1) { //日時の２つ目は翌日
@@ -64,13 +63,13 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
             str: `${y}${zf(dt.getMonth()+1)}${zf(dt.getDate())}`
         };
     };
-    const addDateYmdhi = (y, m, d, h, i) => {
+    const analyzeYmdhi = (y, m, d, h, i) => {
         i = i || '00';
         if (i === '半') { i = '30'; }
         i = i.replace(/分$/, '');
         let dt = new Date(`${y}-${m}-${d} ${h}:${i}`);
         if (isNaN(dt)) { //時間とっても成立か
-            return addDateYmd(y, m, d);
+            return analyzeYmd(y, m, d);
         }
         return {
             h: true,
@@ -78,15 +77,15 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
         };
     };
     let date1 = null, date2 = null;
-    const addDate = (...args) => {
+    const pickupDate = (...args) => {
         if (date2) { return ''; }
         let [a, y, m, d, h, i, h2, i2] = args;
         y = y || NOW.getFullYear();
         let obj;
         if (h) {
-            obj = addDateYmdhi(y, m, d, h, i);
+            obj = analyzeYmdhi(y, m, d, h, i);
         } else {
-            obj = addDateYmd(y, m, d);
+            obj = analyzeYmd(y, m, d);
         }
         if (!obj) { return a; }
         if (date1 && date1.h != obj.h) { return a; } //前と書式が違うなら
@@ -97,18 +96,18 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
             date1 = obj;
         }
         if (h2) {
-            addDate(a, y, m, d, h2, i2);
+            pickupDate(a, y, m, d, h2, i2);
         }
         return '';
     };
-    let _execRegsEnd;
-    const execRegs = (selected, regs, cb4replace) => {
-        _execRegsEnd = false;
-        regs.forEach(reg => {
-            if (_execRegsEnd) { return; }
-            let selected2 = selected.replace(reg, cb4replace).trim();
+    let _execReListEnd;
+    const execReList = (selected, reList, cb4replace) => {
+        _execReListEnd = false;
+        reList.forEach(re => {
+            if (_execReListEnd) { return; }
+            let selected2 = selected.replace(re, cb4replace).trim();
             if (selected !== selected2) {
-                _execRegsEnd = true;
+                _execReListEnd = true;
                 selected = selected2;
             }
         });
@@ -118,12 +117,12 @@ function bookmarklet_google_calendar_add(selected, NOW, open, debug) {
     if (!selected) { return; }
     let details = selected.trim();
     selected = selected.replace(/\s+/g,' ').trim();
-    selected = execRegs(selected, reg_dts, addDate);
+    selected = execReList(selected, dtReList, pickupDate);
     let url = 'http://www.google.com/calendar/event?action=TEMPLATE&trp=false' +
         '&text=' + encodeURIComponent(selected) +
         '&details=' + encodeURIComponent(details);
     if (date1) {
-        if (!date2) { addDate(...date1.args); }
+        if (!date2) { pickupDate(...date1.args); }
         url += '&dates=' + date1.str + '/' + date2.str;
     }
     open(url);
