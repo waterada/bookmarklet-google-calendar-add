@@ -66,7 +66,7 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
             dt = new Date(dt.getTime() + 24 * 3600 * 1000);
         }
         return {
-            h: false,
+            hasHi: false,
             str: `${y}${zf(dt.getMonth()+1)}${zf(dt.getDate())}`
         };
     };
@@ -79,7 +79,7 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
             return analyzeYmd(is2nd, y, m, d);
         }
         return {
-            h: true,
+            hasHi: true,
             str: dt.toISOString().replace(/(:|-|\.\d+)/g, '')
         };
     };
@@ -99,7 +99,7 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
             obj = analyzeYmd(!!date1, y, m, d);
         }
         if (!obj) { return a; }
-        if (date1 && date1.h != obj.h) { return a; } //前と書式が違うなら
+        if (date1 && date1.hasHi != obj.hasHi) { return a; } //前と書式が違うなら
         if (date1) {
             date2 = obj;
         } else {
