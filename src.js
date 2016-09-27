@@ -85,7 +85,7 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
     const pickupDate = (...args) => {
         if (date2) { return ''; }
         let [a, y, m, d, h, i, h2, i2] = args;
-        y = y || NOW.getFullYear();
+        y = y || (date1 && date1.args[1]) || NOW.getFullYear();
         let obj;
         if (h) {
             obj = analyzeYmdhi(y, m, d, h, i);
