@@ -9,18 +9,18 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
             this.replaces = [];
         }
         addSyntax(replacements) {
-            Object.keys(replacements).forEach(search => {
+            for (let search of Object.keys(replacements)) {
                 let replace = replacements[search];
                 if (!search.match(/\W/)) { search = `\\b${search}\\b`; }
                 search = new RegExp(search, 'g');
                 this.replaces.unshift({search, replace});
-            });
+            }
             return this;
         }
         toRegExp(regExpStr, flags) {
-            this.replaces.forEach(a => {
+            for (let a of this.replaces) {
                 regExpStr = regExpStr.replace(a.search, a.replace);
-            });
+            }
             return new RegExp(regExpStr, flags || 'g');
         }
     }
@@ -52,12 +52,12 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         '()()()()',
     ];
     let dtReList = [];
-    RE_DATES.forEach(d => {
-        RE_TIMES.forEach(t => {
-            let re = reSweetDate.toRegExp(`\\s*${d + t}\\s*`);
+    for (let d of RE_DATES) {
+        for (let t of RE_TIMES) {
+            let re = reSweetDate.toRegExp(`\\s*${d}${t}\\s*`);
             dtReList.push(re);
-        });
-    });
+        }
+    }
     const zf = n => ('0' + n).slice(-2);
     const analyzeYmd = (y, m, d) => {
         let dt = new Date(`${y}-${m}-${d}`);
