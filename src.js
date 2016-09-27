@@ -4,9 +4,8 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
     //  空白2個は省略不可の空白
     //  < > はその範囲が将来可
     class RegExpSweet {
-        constructor(cbDebug) {
+        constructor() {
             this.replaces = [];
-            this.cbDebug = cbDebug;
             this.addSyntax({'（': '[（\\(]', '）': '[\\)）]'});
             this.addSyntax({'  ': '[\\s　]+'});
             this.addSyntax({' ': '[\\s　]*'});
@@ -25,11 +24,10 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
             this.replaces.forEach(a => {
                 regExpStr = regExpStr.replace(a.search, a.replace);
             });
-            if (this.cbDebug) { this.cbDebug(regExpStr); }
             return new RegExp(regExpStr, flags || 'g');
         }
     }
-    const reSweetDate = new RegExpSweet(debug);
+    const reSweetDate = new RegExpSweet();
     reSweetDate.addSyntax({
         WEEK: '<（[月火水木金土日]）>',
         TO: '(?:から|～|-|－)',
@@ -129,5 +127,5 @@ function bookmarkletToAddToGoogleCalendar(selected, NOW, open, debug) {
         url += '&dates=' + date1.str + '/' + date2.str;
     }
     open(url);
-    return [(date1 ? date1.str + '/' + date2.str : '')];
+    return [(date1 ? date1.str + '/' + date2.str : ''), dtReList];
 }

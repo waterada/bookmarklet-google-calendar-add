@@ -43,7 +43,7 @@ function execTests(TESTS) {
             ),
             $detail.hide().css({padding: '10px'})
         );
-        let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, new Date('2016-01-01'), openUrl, console.log);
+        let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, new Date('2016-01-01'), openUrl);
         let success = true;
         success = assert($detail, dates, ex_dates, 'dates') && success;
         if (success) {
@@ -54,4 +54,6 @@ function execTests(TESTS) {
         }
         console.log('--------------------------------');
     });
+    let [, reg_dts] = bookmarkletToAddToGoogleCalendar('aaa', new Date(), () => {});
+    console.log(reg_dts);
 }
