@@ -24,6 +24,8 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
             return new RegExp(regExpStr, flags || 'g');
         }
     }
+    const MONTHS1 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const MONTHS2 = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const reSweetDate = new RegExpSweet();
     reSweetDate.addSyntax({'（': '[（\\(]', '）': '[\\)）]'});
     reSweetDate.addSyntax({' ': '\\s*'});
@@ -38,12 +40,15 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         YYYY: `(?:\\d{4}|(?:HEISEI|SHOWA) \\d{1,2})`,
         TIME_JA: '(D2)時 <(D2分|半) <D2秒>>',
         TIME_EN: '(D2):(D2)<:D2>',
+        MONTHS: `(?:${MONTHS1.join('\\.?|')}\\.?|${MONTHS2.join('|')})`,
+        D2TH: '\\d{1,2}(?:st|nd|rd|th)?'
     });
     const RE_DATES = [
         '<(YYYY)年> (D2)月 (D2)日 <WEEK> ',
         '<(YYYY)/>(D2)/(D2)(?: WEEK |\\b )',
         '(YYYY)-(D2)-(D2)(?: WEEK |\\b )',
         '<(YYYY)\\.>(D2)\\.(D2)(?: WEEK |\\b )',
+        '(MONTHS  D2TH  \\d{4}|D2TH  MONTHS  \\d{4})()()\\b ',
     ];
     const RE_TIMES = [
         '(D2)() TO (D2)() 時',
@@ -87,6 +92,14 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
     const pickupDate = (...args) => {
         if (date2) { return ''; }
         let [a, y, m, d, h, i, h2, i2] = args;
+        if (!m && !d) { //欧米式
+            for (let val of y.split(/\s+/)) {
+                let _m = (MONTHS1.indexOf(val) + 1) || (MONTHS2.indexOf(val) + 1);
+                if (_m) { m = _m; }
+                else if (val.match(/^\d{4}$/)) { y = val; }
+                else { d = val.replace(/\D+$/, ''); }
+            }
+        }
         y = y || (date1 && date1.args[1]) || NOW.getFullYear();
         if (y.replace) {
             y = y.replace(reSweetDate.toRegExp('^HEISEI (\\d+)'), (a, y) => y * 1 + 1988);
