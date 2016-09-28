@@ -56,6 +56,22 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         'TIME_EN <TO TIME_EN>',
         '()()()()',
     ];
+    const normalizeEngDate = (y) => {
+        let m, d;
+        for (let val of y.split(/\s+/)) {
+            let _m = (MONTHS1.indexOf(val) + 1) || (MONTHS2.indexOf(val) + 1);
+            if (_m) { m = _m; }
+            else if (val.match(/^\d{4}$/)) { y = val; }
+            else { d = val.replace(/\D+$/, ''); }
+        }
+        return [y, m, d];
+    };
+    const normalizeI = (i) => {
+        i = i || '00';
+        if (i === '半') { i = '30'; }
+        i = i.replace(/分$/, '');
+        return i;
+    };
     let dtReList = [];
     for (let d of RE_DATES) {
         for (let t of RE_TIMES) {
@@ -76,9 +92,7 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         };
     };
     const analyzeYmdhi = (is2nd, y, m, d, h, i) => {
-        i = i || '00';
-        if (i === '半') { i = '30'; }
-        i = i.replace(/分$/, '');
+        i = normalizeI(i);
         let dt = new Date(`${y}-${m}-${d} ${h}:${i}`);
         if (isNaN(dt)) { //時間とっても成立か
             return analyzeYmd(is2nd, y, m, d);
@@ -93,12 +107,7 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         if (date2) { return ''; }
         let [a, y, m, d, h, i, h2, i2] = args;
         if (!m && !d) { //欧米式
-            for (let val of y.split(/\s+/)) {
-                let _m = (MONTHS1.indexOf(val) + 1) || (MONTHS2.indexOf(val) + 1);
-                if (_m) { m = _m; }
-                else if (val.match(/^\d{4}$/)) { y = val; }
-                else { d = val.replace(/\D+$/, ''); }
-            }
+            [y, m, d] = normalizeEngDate(y);
         }
         y = y || (date1 && date1.args[1]) || NOW.getFullYear();
         if (y.replace) {
