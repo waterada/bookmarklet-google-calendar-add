@@ -6,54 +6,46 @@ function execTests(TESTS) {
         text = text.replace(/"/g, '&quot;');
         return text;
     };
-    const assert = ($detail, actual, expected, title) => {
-        if (actual === expected) {
-            console.log(`(${title}) OK`);
-            $(`<div><pre>(${h(title)}) OK</pre></div>`).appendTo($detail);
-            return true;
-        } else {
-            const error = (label, value) => {
+    const assert = (actual, expected, title) => {
+        let html = '';
+        if (actual !== expected) {
+            const _error = (label, value) => {
                 console.error(`(${title}) ${label} : ${value}`);
-                $(`<div><pre>(${h(title)}) ${label} : ${h(value)}</pre></div>`).css({color: 'red'}).appendTo($detail);
+                return `<div style="color: red;"><pre>(${h(title)}) ${label} : ${h(value)}</pre></div>`;
             };
-            error('actual  ', actual);
-            error('expected', expected);
-            return false;
+            html += _error('actual  ', actual);
+            html += _error('expected', expected);
         }
+        return html;
     };
-    TESTS.forEach(test => {
+    let html = '';
+    for (let test of TESTS) {
         let [ts_text, ex_dates] = test;
-        const $detail = $('<div></div>');
-        const $result = $('<span></span>');
-        const $title = $('<div></div>').click((e) => {
-            if ($(e.target).is('a')) {
-                e.stopPropagation();
-                return;
-            }
-            $detail.toggle();
-        });
-        const openUrl = (url) => {
-            $(`<a href="${url}" target="_blank">link</a>`, url).appendTo($title);
+        let capturedUrl = '';
+        const captureUrl = (url) => {
+            capturedUrl = url;
         };
         console.log(ts_text);
-        $('#test').append(
-            $title.append(
-                $('<code></code>').text(ts_text).css({marginRight: '10px'}),
-                $result.css({marginRight: '20px'})
-            ),
-            $detail.hide().css({padding: '10px'})
-        );
-        let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, openUrl, new Date('2016-01-01'));
-        let success = true;
-        success = assert($detail, dates, ex_dates, 'dates') && success;
-        if (success) {
-            $result.text('OK');
+        let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, captureUrl, new Date('2016-01-01'));
+        let errorHtml = assert(dates, ex_dates, 'dates');
+        let resultHtml;
+        if (errorHtml) {
+            resultHtml = `<span style="margin-right: 20px; color: red; font-weight: bold">NG</span>`;
+            errorHtml = `<div style="padding: 10px;">${errorHtml}</div>`;
         } else {
-            $result.text('NG').css({color: 'red', fontWeight: 'bold'});
-            $detail.show();
+            resultHtml = `<span style="margin-right: 20px;">OK</span>`;
         }
+        html += `
+            <div>
+                <code style="margin-right: 10px;">${h(ts_text)}</code>
+                ${resultHtml}
+                <a href="${capturedUrl}" target="_blank">link</a>
+            </div>
+            ${errorHtml}
+        `;
         console.log('--------------------------------');
-    });
+    }
+    document.getElementById('test').innerHTML = html;
     let [, reg_dts] = bookmarkletToAddToGoogleCalendar('aaa', () => {});
     console.log(reg_dts);
 }
