@@ -7,42 +7,38 @@ function execTests(TESTS) {
         return text;
     };
     const assert = (actual, expected, title) => {
-        let html = '';
         if (actual !== expected) {
-            const _error = (label, value) => {
-                console.error(`(${title}) ${label} : ${value}`);
-                return `<div style="color: red;"><pre>(${h(title)}) ${label} : ${h(value)}</pre></div>`;
-            };
-            html += _error('actual  ', actual);
-            html += _error('expected', expected);
+            return `(${title}) actual   : ${actual}\n` +
+                    `(${title}) expected : ${expected}\n`;
         }
-        return html;
+        return '';
     };
     let html = '';
-    for (let test of TESTS) {
-        let [ts_text, ex_dates] = test;
-        let capturedUrl = '';
-        const captureUrl = (url) => {
-            capturedUrl = url;
-        };
+    for (let [ts_text, ex_dates] of TESTS) {
         console.log(ts_text);
-        let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, captureUrl, new Date('2016-01-01'));
-        let errorHtml = assert(dates, ex_dates, 'dates');
-        let resultHtml;
-        if (errorHtml) {
-            resultHtml = `<span style="margin-right: 20px; color: red; font-weight: bold">NG</span>`;
-            errorHtml = `<div style="padding: 10px;">${errorHtml}</div>`;
+        let capturedUrl = '';
+        let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, (url) => { capturedUrl = url }, new Date('2016-01-01'));
+        let errorStr = '';
+        errorStr += assert(dates, ex_dates, 'dates');
+        if (errorStr) {
+            console.error(errorStr);
+            html += `
+                <div>
+                    <code style="margin-right: 10px;">${h(ts_text)}</code>
+                    <span style="margin-right: 20px; color: red; font-weight: bold">NG</span>
+                    <a href="${capturedUrl}" target="_blank">link</a>
+                </div>
+                <pre style="padding: 10px; color: red;">${h(errorStr)}</pre>
+            `;
         } else {
-            resultHtml = `<span style="margin-right: 20px;">OK</span>`;
+            html += `
+                <div>
+                    <code style="margin-right: 10px;">${h(ts_text)}</code>
+                    <span style="margin-right: 20px;">OK</span>
+                    <a href="${capturedUrl}" target="_blank">link</a>
+                </div>
+            `;
         }
-        html += `
-            <div>
-                <code style="margin-right: 10px;">${h(ts_text)}</code>
-                ${resultHtml}
-                <a href="${capturedUrl}" target="_blank">link</a>
-            </div>
-            ${errorHtml}
-        `;
         console.log('--------------------------------');
     }
     document.getElementById('test').innerHTML = html;
