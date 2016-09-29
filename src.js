@@ -60,11 +60,18 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         i = i.replace(/分$/, '');
         return i;
     };
-    const normalizeDateStr = (y, m, d) => {
+    const createDate = (y, m, d, hi) => {
+        let str;
         if (m || d) {
-            return `${y}-${m}-${d}`;
+            str = `${y}-${m}-${d}`;
         } else {
-            return y.replace(/(\d+)[a-z]+/, '$1'); //th等撤去;
+            str = y.replace(/(\d+)[a-z]+/, '$1'); //th等撤去;
+        }
+        let dt = new Date(str + hi);
+        if (dt.toString() === 'Invalid Date') {
+            return null;
+        } else {
+            return dt;
         }
     };
     let dtReList = [];
@@ -76,8 +83,8 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
     }
     const zf = n => ('0' + n).slice(-2);
     const analyzeYmd = (is2nd, y, m, d) => {
-        let dt = new Date(normalizeDateStr(y, m, d));
-        if (isNaN(dt)) { return; }
+        let dt = createDate(y, m, d, '');
+        if (!dt) { return; }
         if (is2nd) { //日時の２つ目は翌日
             dt = new Date(dt.getTime() + 24 * 3600 * 1000);
         }
@@ -88,8 +95,8 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
     };
     const analyzeYmdhi = (is2nd, y, m, d, h, i) => {
         i = normalizeI(i);
-        let dt = new Date(normalizeDateStr(y, m, d) + ` ${h}:${i}`);
-        if (isNaN(dt)) { //時間とっても成立か
+        let dt = createDate(y, m, d, ` ${h}:${i}`);
+        if (!dt) { //時間とっても成立か
             return analyzeYmd(is2nd, y, m, d);
         }
         return {
