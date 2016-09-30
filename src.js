@@ -35,10 +35,10 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         D2: '\\d{1,2}',
         HEISEI: '(?:平成?|[Hh]\\.?)',
         SHOWA: '(?:昭和?|[Ss]\\.?)',
-        YYYY: `(?:\\d{4}|(?:HEISEI|SHOWA) \\d{1,2})`,
+        YYYY: '(?:\\d{4}|(?:HEISEI|SHOWA) \\d{1,2})',
         TIME_JA: '(D2)時 <(D2分|半) <D2秒>>',
         TIME_EN: '(D2):(D2)<:D2>',
-        MONTH: `[A-Z][a-z]{2,8}`,
+        MONTH: '[A-Z][a-z]{2,8}',
         D2TH: '\\d{1,2}(?:st|nd|rd|th)?'
     });
     const RE_DATES = [
