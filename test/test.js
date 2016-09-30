@@ -21,7 +21,7 @@ function execTests(TESTS) {
         let errorStr = '';
         errorStr += assert(dates, ex_dates, 'dates');
         if (errorStr) {
-            console.error(errorStr);
+            console.error("\n" + errorStr);
             html += `
                 <div>
                     <code style="margin-right: 10px;">${h(ts_text)}</code>
