@@ -11,7 +11,7 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         addSyntax(replacements) {
             for (let search of Object.keys(replacements)) {
                 let replace = replacements[search];
-                if (search.match(/^\w+\z/)) { search = `\\b${search}\\b`; }
+                if (search.match(/^\w+$/)) { search = `\\b${search}\\b`; }
                 search = new RegExp(search, 'g');
                 this.replaces.unshift({search, replace});
             }
