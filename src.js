@@ -132,20 +132,14 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         }
         return '';
     };
-    const execReList = (selected, reList, cb4replace) => {
-        for (let re of reList) {
-            let selected2 = selected.replace(re, cb4replace).trim();
-            if (selected !== selected2) {
-                break;
-            }
-        }
-    };
     if (!selected) { selected = prompt('Text:'); }
     if (!selected) { return; }
     let details = selected.trim();
     selected = selected.replace(/[０-９／．：－]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)); //半角化
     selected = selected.replace(/　/g,' ').replace(/\s+/g,' ').trim();
-    execReList(selected, dtReList, pickupDate);
+    for (let re of dtReList) {
+        selected.replace(re, pickupDate);
+    }
     let url = 'http://www.google.com/calendar/event?action=TEMPLATE&trp=false' +
         '&details=' + encodeURIComponent(details);
     if (date1) {
