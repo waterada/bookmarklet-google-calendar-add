@@ -53,25 +53,18 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
         'TIME_EN <TO TIME_EN>',
         '()()()()'
     ];
+    var normalizeY = function(y) {
+        if (y.replace) {
+            y = y.replace(reSweetDate.toRegExp('^HEISEI (\\d+)'), function (a, y) { return y * 1 + 1988; });
+            y = y.replace(reSweetDate.toRegExp('^SHOWA (\\d+)'), function (a, y) { return y * 1 + 1925; });
+        }
+        return y;
+    };
     var normalizeI = function(i) {
         i = i || '00';
         if (i === '半') { i = '30'; }
         i = i.replace(/分$/, '');
         return i;
-    };
-    var createDate = function(y, m, d, hi) {
-        var str;
-        if (m || d) {
-            str = y + '-' + m + '-' + d;
-        } else {
-            str = y.replace(/(\d+)[a-z]+/, '$1'); //th等撤去;
-        }
-        var dt = new Date(str + hi);
-        if (dt.toString() === 'Invalid Date') {
-            return null;
-        } else {
-            return dt;
-        }
     };
     var dtReList = [];
     RE_DATES.forEach(function (d) {
@@ -80,70 +73,75 @@ function bookmarkletToAddToGoogleCalendar(selected, open, NOW) {
             dtReList.push(re);
         });
     });
-    var zf = function (n) { return ('0' + n).slice(-2); };
-    var analyzeYmd = function (is2nd, y, m, d) {
-        var dt = createDate(y, m, d, '');
-        if (!dt) { return; }
-        if (is2nd) { //日時の２つ目は翌日
-            dt = new Date(dt.getTime() + 24 * 3600 * 1000);
-        }
-        return {
-            hasHi: false,
-            str: dt.getFullYear() + zf(dt.getMonth() + 1) + zf(dt.getDate())
+    var SettingDates = function () {
+        var dates = [];
+        var zf = function (n) { return ('0' + n).slice(-2); };
+        this.__proto__.pickupDate = function (y, m, d, h, i) {
+            if (dates[1]) { return false; }
+            y = normalizeY(y || (dates[0] && dates[0].args[0]) || NOW.getFullYear());
+            i = normalizeI(i);
+            //日付作成
+            var str;
+            if (m || d) {
+                str = y + '-' + m + '-' + d;
+            } else {
+                str = y.replace(/(\d+)[a-z]+/, '$1'); //th等撤去;
+            }
+            var is2nd = !!dates[0];
+            if (is2nd && !dates[0].hasHi) { h = i = null; } //前に時刻が無いなら今回も使わない
+            if (h) { str += ' ' + h + ':' + i; }
+            var dt = new Date(str);
+            if (dt.toString() === 'Invalid Date') { dt = null; }
+            var obj;
+            if (h) {
+                if (!dt) { //時間とっても成立か
+                    return this.pickupDate(y, m, d);
+                }
+                obj = { str: dt.toISOString().replace(/(:|-|\.\d+)/g, '') };
+            } else {
+                if (!dt) { return false; }
+                if (is2nd) { //日時の２つ目は翌日
+                    dt = new Date(dt.getTime() + 24 * 3600 * 1000);
+                }
+                obj = { str: dt.getFullYear() + zf(dt.getMonth() + 1) + zf(dt.getDate()) };
+            }
+            if (!obj) { return false; }
+            obj.hasHi = !!h;
+            if (is2nd && !obj.hasHi && dates[0].hasHi) { //２つ目が時刻なしなのに１つ目が時刻ありなら１つ目を時刻なしに
+                var prevArgs = dates[0].args;
+                dates = [];
+                this.pickupDate(prevArgs[0], prevArgs[1], prevArgs[2]);
+            }
+            obj.args = [y, m, d, h, i];
+            dates.push(obj);
+            return true;
         };
+        this.__proto__.toString = function () {
+            if (dates.length == 0) { return ''; }
+            if (dates.length == 1) { this.pickupDate.apply(this, dates[0].args); }
+            return dates[0].str + '/' + dates[1].str;
+        }
     };
-    var analyzeYmdhi = function (is2nd, y, m, d, h, i) {
-        i = normalizeI(i);
-        var dt = createDate(y, m, d, ' ' + h + ':' + i);
-        if (!dt) { //時間とっても成立か
-            return analyzeYmd(is2nd, y, m, d);
-        }
-        return {
-            hasHi: true,
-            str: dt.toISOString().replace(/(:|-|\.\d+)/g, '')
-        };
-    };
-    var date1 = null, date2 = null;
-    var pickupDate = function (a, y, m, d, h, i, h2, i2) {
-        if (date2) { return ''; }
-        y = y || (date1 && date1.args[1]) || NOW.getFullYear();
-        if (y.replace) {
-            y = y.replace(reSweetDate.toRegExp('^HEISEI (\\d+)'), function (a, y) { return y * 1 + 1988; });
-            y = y.replace(reSweetDate.toRegExp('^SHOWA (\\d+)'), function (a, y) { return y * 1 + 1925; });
-        }
-        var obj;
-        if (h) {
-            obj = analyzeYmdhi(!!date1, y, m, d, h, i);
-        } else {
-            obj = analyzeYmd(!!date1, y, m, d);
-        }
-        if (!obj) { return a; }
-        if (date1 && date1.hasHi != obj.hasHi) { return a; } //前と書式が違うなら
-        if (date1) {
-            date2 = obj;
-        } else {
-            obj.args = [a, y, m, d, h, i, h2, i2];
-            date1 = obj;
-        }
-        if (h2) {
-            pickupDate(a, y, m, d, h2, i2);
-        }
-        return '';
-    };
+    var settingDates = new SettingDates();
     if (!selected) { selected = prompt('Text:'); }
     if (!selected) { return; }
     var details = selected.trim();
     selected = selected.replace(/[０-９／．：－]/g, function (s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }); //半角化
     selected = selected.replace(/　/g,' ').replace(/\s+/g,' ').trim();
-    for (var i = 0; i < dtReList.length; i++) {
-        selected.replace(dtReList[i], pickupDate);
+    for (var j = 0; j < dtReList.length; j++) {
+        var selected2 = selected.replace(dtReList[j], function (a, y, m, d, h, i, h2, i2) {
+            var replaced = settingDates.pickupDate(y, m, d, h, i);
+            if (replaced && h2) {
+                settingDates.pickupDate(y, m, d, h2, i2);
+            }
+            return (replaced ? '' : a);
+        });
+        if (selected !== selected2) { break; }
     }
+    var dates = settingDates.toString();
     var url = 'http://www.google.com/calendar/event?action=TEMPLATE&trp=false' +
-        '&details=' + encodeURIComponent(details);
-    if (date1) {
-        if (!date2) { pickupDate.apply(null, date1.args); }
-        url += '&dates=' + date1.str + '/' + date2.str;
-    }
+        '&details=' + encodeURIComponent(details) +
+        (dates ? '&dates=' + dates : '');
     open(url);
-    return [(date1 ? date1.str + '/' + date2.str : ''), dtReList];
+    return [dates, dtReList];
 }
