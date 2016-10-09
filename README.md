@@ -3,9 +3,10 @@
 ## インストール
 
 ```
-javascript:(function(d, ...others){
-let s=d.createElement('script');s.src='https://waterada.github.io/bookmarklet-google-calendar-add/src/src.js';d.body.appendChild(s);bookmarkletToAddToGoogleCalendar(...others);
-})(document, window.getSelection()+'', window.open)
+javascript:(function(GCAB, d, sel, open){
+if(!d.getElementById(GCAB)){var s=d.createElement('script'); s.id=GCAB; s.src='https://waterada.github.io/bookmarklet-google-calendar-add/src/GoogleCalenderAddBookmarklet.js';d.head.appendChild(s);}
+setTimeout(function(){new GoogleCalenderAddBookmarklet().popup(sel, open)}, 500);
+})('GoogleCalenderAddBookmarklet', document, window.getSelection()+'', window.open)
 ```
 
 上記を Google Chrome で bookmark にするだけです。
