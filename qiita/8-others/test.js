@@ -15,13 +15,16 @@ function execTests(TESTS) {
     };
     let html = '';
     for (let [ts_text, ex_dates] of TESTS) {
+        if (ts_text.indexOf('�') !== -1) {
+            throw 'error';
+        }
         console.log(ts_text);
         let capturedUrl = '';
         let [dates] = bookmarkletToAddToGoogleCalendar(ts_text, (url) => { capturedUrl = url }, new Date('2016-01-01'));
         let errorStr = '';
         errorStr += assert(dates, ex_dates, 'dates');
         if (errorStr) {
-            console.error("\n" + errorStr);
+            console.error("\n" + errorStr + '--------------------------------');
             html += `
                 <div>
                     <code style="margin-right: 10px;">${h(ts_text)}</code>
@@ -39,7 +42,6 @@ function execTests(TESTS) {
                 </div>
             `;
         }
-        console.log('--------------------------------');
     }
     document.getElementById('test').innerHTML = html;
     let [, reg_dts] = bookmarkletToAddToGoogleCalendar('aaa', () => {});
