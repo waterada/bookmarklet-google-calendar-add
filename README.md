@@ -4,7 +4,7 @@
 
 ```
 javascript:(function(d, ...others){
-let s=d.createElement('script');s.src='https://waterada.github.io/bookmarklet-google-calendar-add/src.js';d.body.appendChild(s);bookmarkletToAddToGoogleCalendar(...others);
+let s=d.createElement('script');s.src='https://waterada.github.io/bookmarklet-google-calendar-add/src/src.js';d.body.appendChild(s);bookmarkletToAddToGoogleCalendar(...others);
 })(document, window.getSelection()+'', window.open)
 ```
 
@@ -19,5 +19,5 @@ let s=d.createElement('script');s.src='https://waterada.github.io/bookmarklet-go
 
 ## どんな日付に対応しているのか
 
-[テスト](test/text.html) を参考にしてください。
+[テスト](src/test-cases.js) を参考にしてください。
 
